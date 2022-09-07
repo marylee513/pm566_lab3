@@ -2,7 +2,7 @@
 title: "lab3"
 author: "Yiping Li"
 output: github_document
-date: "`r Sys.Date()`"
+date: "`r Sys.Date()`" 
 ---
 
 ```{r setup, include=FALSE}
