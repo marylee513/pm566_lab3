@@ -3,6 +3,7 @@ title: "lab3"
 author: "Yiping Li"
 output: github_document
 date: "`r Sys.Date()`" 
+always_allow_html: true
 ---
 
 ```{r setup, include=FALSE}
@@ -14,6 +15,8 @@ if(!require(leaflet)){
   install.packages("leaflet")
   library(leaflet)
 }
+
+webshot::install_phantomjs()
 ```
 
 ##1. Read in the data
