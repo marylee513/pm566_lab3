@@ -1,0 +1,126 @@
+---
+title: "lab3"
+author: "Yiping Li"
+output: github_document
+date: "`r Sys.Date()`" 
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r}
+if(!require(leaflet)){
+  install.packages("leaflet")
+  library(leaflet)
+}
+```
+
+##1. Read in the data
+First download and then read in with data.table:fread()
+
+```{r}
+#check if file exists: the "if (){}" function, if not exist it will be downladed
+
+if (!file.exists("met_all.gz"))
+{
+download.file("https://raw.githubusercontent.com/USCbiostats/data-science-data/master/02_met/met_all.gz", "met_all.gz", method="libcurl", timeout = 60)
+}
+
+met <- data.table::fread("met_all.gz")
+```
+
+##2. Check the dimensions, headers, footers. How many columns, rows are there?
+```{r}
+dim(met)
+
+head(met)
+
+tail(met)
+```
+
+##3. Take a look at the variables.
+```{r}
+str(met)
+```
+
+##4. Take a closer look at the key variables.
+```{r}
+table(met$year)
+table(met$day)
+table(met$hour)
+summary(met$temp)
+summary(met$elev)
+summary(met$wind.sp)
+
+#After checking the data we should make the appropriate modifications. Replace elevations with 9999 as NA.
+met[met$elev==9999.0] <- NA
+summary(met$elev)
+
+#We also have the issue of the minimum temperature being -40C, so we should remove those observations.
+met <- met[temp>-40]
+met2 <- met[order(temp)]
+head(met2)
+```
+
+##5. Check the data against an external data source.
+```{r}
+met <- met[temp>-15]
+met2 <- met[order(temp)]
+head(met2)
+```
+
+
+##6. Calculate summary statistics
+```{r}
+elev <- met[elev==max(elev)]
+summary(elev)
+
+met[elev==max(elev,na.rm=TRUE), .(
+  temp_wind = cor(temp,wind.sp, use="complete"),
+  temp_hour = cor(temp,hour,use="complete"),
+  wind.sp_day=cor(wind.sp, day, use="complete"),
+  wind.sp_hour=cor(wind.sp, hour,use="complete")
+ )]
+#this coutput should give the same as the output below
+
+cor(elev$temp, elev$wind.sp, use="complete")
+cor(elev$temp, elev$hour, use="complete")
+cor(elev$wind.sp, elev$day, use="complete")
+cor(elev$wind.sp, elev$hour, use="complete")
+cor(elev$temp, elev$day, use="complete")
+```
+
+
+##7. Exploratory graphs
+```{r}
+hist(met$elev, breaks=100)
+hist(met$temp)
+hist(met$wind.sp)
+
+library(leaflet)
+leaflet(elev) %>%
+  addProviderTiles('OpenStreetMap') %>% 
+  addCircles(lat=~lat,lng=~lon, opacity=1, fillOpacity=1, radius=100)
+
+library(lubridate)
+elev$date <- with(elev, ymd_h(paste(year, month, day, hour, sep= ' ')))
+summary(elev$date)
+
+elev <- elev[order(date)]
+head(elev)
+
+plot(elev$date, elev$temp, type='l')
+plot(elev$date, elev$wind.sp, type='l')
+```
+
+
+## Including Plots
+
+You can also embed plots, for example:
+
+```{r pressure, echo=FALSE}
+plot(pressure)
+```
+
+Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot.
