@@ -1,12 +1,19 @@
 ---
 title: "lab3"
 author: "Yiping Li"
-output: html_document
+output: github_document
 date: "`r Sys.Date()`"
 ---
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r}
+if(!require(leaflet)){
+  install.packages("leaflet")
+  library(leaflet)
+}
 ```
 
 ##1. Read in the data
@@ -68,6 +75,14 @@ head(met2)
 ```{r}
 elev <- met[elev==max(elev)]
 summary(elev)
+
+met[elev==max(elev,na.rm=TRUE), .(
+  temp_wind = cor(temp,wind.sp, use="complete"),
+  temp_hour = cor(temp,hour,use="complete"),
+  wind.sp_day=cor(wind.sp, day, use="complete"),
+  wind.sp_hour=cor(wind.sp, hour,use="complete")
+ )]
+#this coutput should give the same as the output below
 
 cor(elev$temp, elev$wind.sp, use="complete")
 cor(elev$temp, elev$hour, use="complete")
